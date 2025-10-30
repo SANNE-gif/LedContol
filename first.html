@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contrôle LED ESP32</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .led-indicator {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 30px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .led-on {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      box-shadow: 0 5px 30px rgba(34, 197, 94, 0.5);
+    }
+    
+    .led-off {
+      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+      box-shadow: 0 5px 30px rgba(239, 68, 68, 0.3);
+    }
+    
+    .status-text {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #333;
+    }
+    
+    .buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: white;
+    }
+    
+    .btn-on {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+    
+    .btn-on:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
+    }
+    
+    .btn-off {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .btn-off:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .connection-status {
+      margin-top: 30px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .connected {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    
+    .disconnected {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    
+    .footer {
+      margin-top: 30px;
+      color: #999;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔆 Contrôle LED</h1>
+    <p class="subtitle">ESP32 via Firebase</p>
+    
+    <div id="ledIndicator" class="led-indicator led-off">💡</div>
+    <div id="statusText" class="status-text">LED Éteinte</div>
+    
+    <div class="buttons">
+      <button class="btn-on" onclick="toggleLED(1)">
+        ⚡ Allumer
+      </button>
+      <button class="btn-off" onclick="toggleLED(0)">
+        🌙 Éteindre
+      </button>
+    </div>
+    
+    <div id="connectionStatus" class="connection-status disconnected">
+      🔴 Connexion à Firebase...
+    </div>
+    
+    <div class="footer">
+      Powered by Firebase & ESP32
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHQPat30WdJTmBVoNQh9I1DwKLTjoxmgc",
+      authDomain: "ledsannezigani.firebaseapp.com",
+      databaseURL: "https://ledsannezigani-default-rtdb.firebaseio.com",
+      projectId: "ledsannezigani",
+      storageBucket: "ledsannezigani.firebasestorage.app",
+      messagingSenderId: "609698341557",
+      appId: "1:609698341557:web:7ca9bdcb21ad088a9bd4fc"
+    };
+
+    // Initialiser Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const ledRef = ref(database, 'ledState');
+
+    // Éléments DOM
+    const ledIndicator = document.getElementById('ledIndicator');
+    const statusText = document.getElementById('statusText');
+    const connectionStatus = document.getElementById('connectionStatus');
+
+    // Écouter les changements en temps réel
+    onValue(ledRef, (snapshot) => {
+      const data = snapshot.val();
+      const state = data ? data.state : 0;
+      updateUI(state);
+      
+      // Mettre à jour le statut de connexion
+      connectionStatus.textContent = '🟢 Connecté à Firebase';
+      connectionStatus.className = 'connection-status connected';
+    }, (error) => {
+      console.error('Erreur Firebase:', error);
+      connectionStatus.textContent = '🔴 Erreur de connexion';
+      connectionStatus.className = 'connection-status disconnected';
+    });
+
+    // Fonction pour changer l'état de la LED
+    window.toggleLED = function(state) {
+      set(ledRef, { state: state })
+        .then(() => {
+          console.log('État envoyé:', state);
+        })
+        .catch((error) => {
+          console.error('Erreur:', error);
+          alert('Erreur lors de l\'envoi de la commande');
+        });
+    };
+
+    // Mettre à jour l'interface
+    function updateUI(state) {
+      if(state === 1) {
+        ledIndicator.className = 'led-indicator led-on';
+        statusText.textContent = 'LED Allumée';
+        ledIndicator.textContent = '💡';
+      } else {
+        ledIndicator.className = 'led-indicator led-off';
+        statusText.textContent = 'LED Éteinte';
+        ledIndicator.textContent = '💡';
+      }
+    }
+
+    // Initialiser l'état au chargement
+    console.log('Application chargée et connectée à Firebase');
+  </script>
+</body>
+</html>
