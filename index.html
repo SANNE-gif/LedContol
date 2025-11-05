@@ -13,7 +13,10 @@
     
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDUH9TXpLYxm4RsG5YTNwTRsr-WRhg7ciYJA&s');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -21,14 +24,26 @@
       padding: 20px;
     }
     
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: -1;
+    }
+    
     .container {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       padding: 40px;
       border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       max-width: 400px;
       width: 100%;
       text-align: center;
+      backdrop-filter: blur(10px);
     }
     
     h1 {
@@ -51,9 +66,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
       transition: all 0.3s ease;
       box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .led-indicator img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
     }
     
     .led-on {
@@ -133,8 +155,9 @@
     
     .footer {
       margin-top: 30px;
-      color: #999;
+      color: #666;
       font-size: 12px;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -143,7 +166,9 @@
     <h1>🔆 Contrôle LED</h1>
     <p class="subtitle">ESP32 via Firebase</p>
     
-    <div id="ledIndicator" class="led-indicator led-off">💡</div>
+    <div id="ledIndicator" class="led-indicator led-off">
+      <img src="https://cdn-icons-png.flaticon.com/512/3176/3176369.png" alt="LED">
+    </div>
     <div id="statusText" class="status-text">LED Éteinte</div>
     
     <div class="buttons">
@@ -160,7 +185,7 @@
     </div>
     
     <div class="footer">
-      Powered by Firebase & ESP32
+      © Team 3
     </div>
   </div>
 
@@ -222,11 +247,9 @@
       if(state === 1) {
         ledIndicator.className = 'led-indicator led-on';
         statusText.textContent = 'LED Allumée';
-        ledIndicator.textContent = '💡';
       } else {
         ledIndicator.className = 'led-indicator led-off';
         statusText.textContent = 'LED Éteinte';
-        ledIndicator.textContent = '💡';
       }
     }
 
