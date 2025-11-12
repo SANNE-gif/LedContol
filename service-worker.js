@@ -1,7 +1,7 @@
 const CACHE_NAME = 'led-control-v1';
 const urlsToCache = [
-  '/LedControl/',
-  '/LedControl/index.html'
+  './',
+  './index.html'
 ];
 
 // Installation du Service Worker
