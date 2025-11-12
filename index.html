@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#667eea">
+  <meta name="description" content="Application de contrôle LED ESP32 via Firebase">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LED Control">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3176/3176369.png">
   <title>Contrôle LED ESP32</title>
   <style>
     * {
@@ -36,7 +43,6 @@
     }
     
     .container {
-      
       padding: 40px;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -153,6 +159,22 @@
       color: #dc2626;
     }
     
+    .install-prompt {
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      display: none;
+      transition: all 0.3s ease;
+    }
+    
+    .install-prompt:hover {
+      transform: scale(1.02);
+    }
+    
     .footer {
       margin-top: 30px;
       color: #666;
@@ -182,6 +204,10 @@
     
     <div id="connectionStatus" class="connection-status disconnected">
       🔴 Connexion à Firebase...
+    </div>
+    
+    <div id="installPrompt" class="install-prompt" onclick="installApp()">
+      📱 Installer l'application
     </div>
     
     <div class="footer">
@@ -255,6 +281,49 @@
 
     // Initialiser l'état au chargement
     console.log('Application chargée et connectée à Firebase');
+  </script>
+
+  <!-- PWA Installation -->
+  <script>
+    // Enregistrer le Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker enregistré:', registration);
+        })
+        .catch((error) => {
+          console.log('Erreur Service Worker:', error);
+        });
+    }
+
+    // Gérer l'installation de l'app
+    let deferredPrompt;
+    const installPrompt = document.getElementById('installPrompt');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installPrompt.style.display = 'block';
+    });
+
+    window.installApp = function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('App installée');
+            installPrompt.style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      }
+    };
+
+    // Cacher le bouton si déjà installé
+    window.addEventListener('appinstalled', () => {
+      installPrompt.style.display = 'none';
+      console.log('App installée avec succès');
+    });
   </script>
 </body>
 </html>
