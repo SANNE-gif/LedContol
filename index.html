@@ -185,13 +185,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>🔆 Contrôle LED</h1>
+    <h1>🔆 Connected devices</h1>
     <p class="subtitle">ESP32</p>
     
     <div id="ledIndicator" class="led-indicator led-off">
       <img src="https://cdn-icons-png.flaticon.com/512/3176/3176369.png" alt="LED">
     </div>
-    <div id="statusText" class="status-text">LED Éteinte</div>
+    <div id="statusText" class="status-text">Appareil en arrêt</div>
     
     <div class="buttons">
       <button class="btn-on" onclick="toggleLED(1)">
@@ -272,10 +272,10 @@
     function updateUI(state) {
       if(state === 1) {
         ledIndicator.className = 'led-indicator led-on';
-        statusText.textContent = 'LED Allumée';
+        statusText.textContent = 'Appareil en marche';
       } else {
         ledIndicator.className = 'led-indicator led-off';
-        statusText.textContent = 'LED Éteinte';
+        statusText.textContent = 'Appareil en arrêt';
       }
     }
 
@@ -320,10 +320,10 @@
     };
 
     // Cacher le bouton si déjà installé
-    window.addEventListener('appinstalled', () => {
+    /*window.addEventListener('appinstalled', () => {
       installPrompt.style.display = 'none';
       console.log('App installée avec succès');
-    });
+    });*/
   </script>
 </body>
 </html>
